@@ -1,0 +1,2 @@
+Have you found the answer for your question? If yes would you please share it?
+What are you trying to do?  Why can't you just store the \"Range\"?
