@@ -3,6 +3,8 @@ import os
 import re
 from itertools import chain
 from collections import defaultdict
+import numpy as np
+import pickle as pickle
 
 #####
 # Word lists
@@ -249,3 +251,86 @@ def get_politeness_strategy_features(document):
 
     return features
 
+from nltk import word_tokenize
+def generate_table():
+    file_name="wiki_parsed.p"
+    i=0
+    matrix=[]
+    vals=[]
+    scores=[]
+    documents=pickle.load(open(file_name))
+    for vals in documents:
+        documents[vals]['unigrams']= word_tokenize(documents[vals]['Request'])
+        features=get_politeness_strategy_features(documents[vals])
+        feature_vector=[]
+        for f in POLITENESS_FEATURES:
+           feature_vector.append(features[f])
+        matrix.append(feature_vector)
+        scores.append(documents[vals]['score'])
+
+    # print matrix
+    # print "Scores"
+    # print scores
+    matrix=np.array(matrix)
+    scores=np.array(scores)
+    mult=np.multiply(matrix.T, scores.T).T
+    mult=np.sum(mult, axis=0)
+    total=np.sum(matrix, axis=0)
+    results=np.divide(mult, total)
+    results=results.tolist()
+    for i, f in enumerate(POLITENESS_FEATURES):
+        print f,  results[i]
+
+def generate_table_quartile():
+    file_name="wiki_parsed.p"
+    i=0
+    matrix_top=[]
+    matrix_total=[]
+    list_documents=[]
+    documents=pickle.load(open(file_name))
+    
+    #Adding unigrams
+    for vals in documents:
+        documents[vals]['unigrams']= word_tokenize(documents[vals]['Request'])
+    #Converting to list
+    for i in documents:
+        list_documents.append(documents[i])
+
+    list_documents.sort(key=lambda l: l['score'], reverse=True)
+    list_top=[]
+    for i in range(len(list_documents)/4):
+        list_top.append(list_documents[i])
+    
+    for rows_doc in list_top:
+        features=get_politeness_strategy_features(rows_doc)
+        feature_vector=[]
+        for f in POLITENESS_FEATURES:
+           feature_vector.append(features[f])
+        matrix_top.append(feature_vector)
+    for rows_doc in list_documents:
+        features=get_politeness_strategy_features(rows_doc)
+        feature_vector=[]
+        for f in POLITENESS_FEATURES:
+           feature_vector.append(features[f])
+        matrix_total.append(feature_vector)
+
+    matrix_total=np.array(matrix_total)
+    matrix_top=np.array(matrix_top)
+    total=np.sum(matrix_total, axis=0)
+    top=np.sum(matrix_top, axis=0)
+    results=np.divide(top, total.astype(float))
+    results=results.tolist()
+    for i, f in enumerate(POLITENESS_FEATURES):
+        print f,"\t",  results[i]
+
+
+
+if __name__=="__main__":
+    #for f in POLITENESS_FEATURES:
+        #print f
+    print "Results"
+    generate_table()
+    
+    print ""
+    print "Quartile Results"
+    generate_table_quartile()
