@@ -25,26 +25,26 @@ def getThreads(subreddit,num_comments=10,max_threads=5000,max_comments=100,min_c
     subred = r.get_subreddit(subreddit) #get a subreddit
     comments = []
     questionComment = []
-    for sub in subred.get_top_from_year(limit=max_threads):
+    for sub in subred.get_hot(limit=max_threads):
         if sub.id not in already_done and comment_counter < num_comments:
             already_done.append(sub.id)
-            sub.replace_more_comments(limit=20, threshold=1)
+            sub.replace_more_comments(limit=None, threshold=1)
             flat_comments = praw.helpers.flatten_tree(sub.comments)
             for comment in flat_comments:
                 diff_comment = True
-                for sentence in sent_tokenize(comment.body):              
-                    comments.append(sentence) 
-                    if '?' in sentence:
+                for sentence in sent_tokenize(comment.body.encode('utf-8')):  
+                    if '[deleted]' in sentence:
+                        break            
+                    comments.append(sentence)
+                    if '?' in sentence and not diff_comment:
                         s = {}
-                        if diff_comment:
-                            s['before'] = comments[-2]
-                        else:
-                            s['before'] = ''
-                        s['current'] = sentence
+                        s['Request'] = comments[-2]+' '+sentence
+                        s['id'] = comment.id
+                        s['score'] = comment.score
                         questionComment.append(s)          
                         comment_counter += 1
-                        print 'Added comment. The counter is at',comment_counter
-                        diff_comment = False
+                        print 'Added question. Comment counter',comment_counter
+                    diff_comment = False
                     if comment_counter>num_comments:
                         return [comments,questionComment]
     return [comments,questionComment]
@@ -53,5 +53,5 @@ thread_names = ['unitedstates','unitedkingdom']
 reddit_data = {}
 for thread_name in thread_names:
     print thread_name
-    reddit_data[thread_name] = getThreads(thread_name,num_comments=1200,max_threads=5000,max_comments=100,min_comments=0,verbose=True)
+    reddit_data[thread_name] = getThreads(thread_name,num_comments=3000,max_threads=10000,max_comments=1000,min_comments=0,verbose=True)
     writePickle(reddit_data,"reddit_data_countries.pickle")
