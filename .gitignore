@@ -56,3 +56,4 @@ target/
 venv
 *.pyc
 Stanparser
+.ipynb_checkpoints/
