@@ -25,7 +25,7 @@ def getThreads(subreddit,num_comments=10,max_threads=5000,max_comments=100,min_c
     subred = r.get_subreddit(subreddit) #get a subreddit
     comments = []
     questionComment = []
-    for sub in subred.get_hot(limit=max_threads):
+    for sub in subred.get_top_from_all(limit=max_threads):
         if sub.id not in already_done and comment_counter < num_comments:
             already_done.append(sub.id)
             sub.replace_more_comments(limit=None, threshold=1)
@@ -48,10 +48,10 @@ def getThreads(subreddit,num_comments=10,max_threads=5000,max_comments=100,min_c
                     if comment_counter>num_comments:
                         return [comments,questionComment]
     return [comments,questionComment]
-thread_names = ['unitedstates','unitedkingdom']
+thread_names = ['Progressive','Socialism']
 
 reddit_data = {}
 for thread_name in thread_names:
     print thread_name
-    reddit_data[thread_name] = getThreads(thread_name,num_comments=3000,max_threads=10000,max_comments=1000,min_comments=0,verbose=True)
-    writePickle(reddit_data,"reddit_data_countries.pickle")
+    reddit_data[thread_name] = getThreads(thread_name,num_comments=1000,max_threads=40000,max_comments=1000,min_comments=0,verbose=True)
+    writePickle(reddit_data,"reddit_data_ps.pickle")
