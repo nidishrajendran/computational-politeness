@@ -1,4 +1,5 @@
 import pickle
+import math
 import numpy as np
 from scipy.sparse import csr_matrix
 from features.vectorizer import PolitenessFeatureVectorizer
@@ -41,6 +42,7 @@ def getScores(sub):
 # 		print sub, np.mean(scores)
 
 
+
 def getMeanScores(pickle_in):
 	redditData = pickle.load(open(pickle_in,'rb'))
 	predictions = dict.fromkeys(redditData.keys())
@@ -48,6 +50,27 @@ def getMeanScores(pickle_in):
 		print "Getting scores for subreddit -", sub, "with", len(reqs[1]), "requests" 
 		predictions[sub] = getScores(reqs[1])
 
+	# Population stats
+	n, u0 = 0, 0.0
+	for sub, scores in predictions.iteritems():
+		n += len(scores)
+		u0 += np.sum(scores)
+	u0 = u0/n
+	print "Total n =", n, "U0 = ", u0
+
+	# t-vals
+	for sub, scores in predictions.iteritems():
+		print "\n======", sub, "=======\n"
+		n_sub = len(scores)
+		print "\nn =", n_sub
+		s = np.sqrt(np.sum(np.square(scores - u0)) / float(n_sub-1))
+		print "s =", s
+		x_dash = np.mean(scores)
+		print "x_dash =", x_dash
+		t = (x_dash - u0)/(s/n_sub)
+		print "t =", t
+
+	# average politeness of each subreddit
 	for sub, scores in predictions.iteritems():		
 		print sub, " - ", np.mean(scores)
 
@@ -55,5 +78,5 @@ DATA_PATH = 'data/parsed/'
 # getMeanScores(DATA_PATH+'reddit_us_ind_parsed.p')
 # getMeanScores(DATA_PATH+'reddit_atlanta_london_parsed.p')
 # getMeanScores(DATA_PATH+'reddit_newyork_sf_parsed.p')
-# getMeanScores(DATA_PATH+'reddit_religion_parsed.p')
-getMeanScores(DATA_PATH+'reddit_lib_cons_parsed.p')
+getMeanScores(DATA_PATH+'reddit_religion_parsed.p')
+# getMeanScores(DATA_PATH+'reddit_lib_cons_parsed.p')
